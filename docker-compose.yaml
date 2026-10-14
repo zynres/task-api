@@ -13,7 +13,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
 
-      ConnectionStrings__Db: Host=postgres;Port=5432;Database=task_task_db;Username=postgres;Password=postgres
+      ConnectionStrings__Db: Host=postgres;Port=5432;Database=tasks_db;Username=postgres;Password=postgres
     ports: 
       - 8000:8080
   
@@ -22,7 +22,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: task_api_db
+      POSTGRES_DB: tasks_db
 
     ports:
       - 5432:5432
