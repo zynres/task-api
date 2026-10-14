@@ -28,65 +28,66 @@ public sealed class RabbitMqService : IRabbitMqService, IAsyncDisposable
     }
 
     private async Task EnsureConnectedAsync(
-        CancellationToken cancellationToken)
+     CancellationToken cancellationToken)
     {
-        if (channel is { IsOpen: true })
+        if (channel is { IsOpen: true } && connection is { IsOpen: true })
             return;
 
         await initLock.WaitAsync(cancellationToken);
 
         try
         {
-            if (channel is { IsOpen: true })
+            if (channel is { IsOpen: true } && connection is { IsOpen: true })
                 return;
 
-            if (connection is { IsOpen: true })
+            if (connection is not { IsOpen: true })
             {
-                await connection.DisposeAsync();
-                connection = null;
-            }
+                if (channel is not null)
+                {
+                    await channel.DisposeAsync();
+                    channel = null;
+                }
+                if (connection is not null)
+                {
+                    await connection.DisposeAsync();
+                    connection = null;
+                }
 
-            var factory = new ConnectionFactory
-            {
-                HostName = options.Host,
-                Port = options.Port,
-                UserName = options.Username,
-                Password = options.Password
-            };
+                var factory = new ConnectionFactory
+                {
+                    HostName = options.Host,
+                    Port = options.Port,
+                    UserName = options.Username,
+                    Password = options.Password
+                };
 
-            int count = 0;
-
-            while (true)
-            {
                 try
                 {
-                    count++;
-
-                    logger.LogInformation(
-                        "create RabbitMQ connection: {count}", count);
-
                     connection = await factory.CreateConnectionAsync(cancellationToken);
-
-                    break;
                 }
-                catch
+                catch (Exception ex)
                 {
-                    logger.LogError(
-                        "RabbitMQ unavailable: {count}", count);
-
-                    await Task.Delay(5000, cancellationToken);
+                    logger.LogError(ex, "RabbitMQ unavailable on attempt {count}. Retrying in 5s...");
+                    return;
                 }
             }
 
-            channel = await connection.CreateChannelAsync(
-                cancellationToken: cancellationToken);
+            if (channel is not { IsOpen: true })
+            {
+                if (channel is not null)
+                {
+                    await channel.DisposeAsync();
+                }
 
-            await channel.ExchangeDeclareAsync(
-                exchange: "task.events",
-                type: ExchangeType.Topic,
-                durable: true,
-                autoDelete: false,
-                cancellationToken: cancellationToken);
+                channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+
+                await channel.ExchangeDeclareAsync(
+                    exchange: "task.events",
+                    type: ExchangeType.Topic,
+                    durable: true,
+                    autoDelete: false,
+                    cancellationToken: cancellationToken);
+            }
         }
         finally
         {
