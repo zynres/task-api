@@ -1,0 +1,16 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "PostgreSQL",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "html_analyzer_db",
+      "Username": "postgres",
+      "SSLMode": "disable",
+      "ConnectionParameters": {
+        "passfile": "/var/lib/pgadmin/.pgpass"
+      }
+    }
+  }
+}
