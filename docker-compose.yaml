@@ -14,10 +14,10 @@ services:
       ASPNETCORE_HTTP_PORTS: 8080
 
       ConnectionStrings__Db: Host=postgres;Port=5432;Database=tasks_db;Username=postgres;Password=postgres
-      RabbitMq__Host: "rabbitmq"
+      RabbitMq__Host: rabbitmq
       RabbitMq__Port: 5672
-      RabbitMq__Username: "admin"
-      RabbitMq__Password: "admin"
+      RabbitMq__Username: admin
+      RabbitMq__Password: admin
     ports: 
       - 8000:8080
   
